@@ -40,3 +40,10 @@ process_retail_modeling <- function(data, forecast_window_weeks = 4){
   # Return a List with the Train and Test Sets 
   return(list(train_set = train, test_set = test))
 }
+
+#### Functions to Export Objects to the app ####
+export_object <- function(x, out_file) {
+  dir.create(dirname(out_file), showWarnings = FALSE, recursive = TRUE)
+  saveRDS(x, out_file)
+  out_file
+}
