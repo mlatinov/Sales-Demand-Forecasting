@@ -33,7 +33,7 @@ product_weekly_sales_ui <- function(
     card_header("Product Weekly Sales"),
     full_screen = TRUE,
     height      = 600,
-    plotOutput(outputId = "ts_overview_product_weekly_sales")  
+    plotly::plotlyOutput(outputId = "ts_overview_product_weekly_sales")  
   )
 }
 #### Function Overview Page Container for Product Weekly Price
@@ -51,21 +51,64 @@ product_weekly_price_ui <- function(
   )
 }
 #### Functions Overview Page for Controller ####
-product_overview_page_controller_ui <- function(output_id = "ts_overview_pick_product_ws_price"){
+product_overview_page_controller_ui <- function(
+  data,
+  product_pick_output_id  = "ts_overview_pick_product_ws_price",
+  category_pick_output_id = "ts_overview_pick_product_category_ws_price",
+  supplier_pick_output_id = "ts_overview_pick_product_supplier_ws_price",
+  featured_pick_output_id = "ts_overview_pick_product_featured_ws_price"
+){
   card(
     card_header("Look up Product"),
     height = 600,
+    ## Pick A Specific Product or Products to look up 
     pickerInput(
-      inputId  = output_id,
+      inputId  = product_pick_output_id,
       label    = "Product",
-      choices  = c("A", "B", "C"),
-      selected = "A",
-      multiple = FALSE,
+      choices  = c("Multiple", 1:length(unique(data$product))),
+      selected = "Multiple",
+      multiple = TRUE,
       options  =  pickerOptions(
         liveSearch = TRUE,
         size = 5
       )
-    ) 
+    ),
+    ## Pick a Category of Products
+    pickerInput(
+      label   = "Category", 
+      inputId = "ts_overview_pick_product_category_ws_price",
+      choices = c("Multiple", unique(data$category)),
+      selected = "Multiple",
+      multiple = FALSE,
+      options  = pickerOptions(
+        liveSearch = TRUE, 
+        size = 5
+      ) 
+    ),
+    ## Pick Supplier  
+    pickerInput(
+      label    = "Supplier",
+      inputId  = "ts_overview_pick_product_supplier_ws_price",
+      choices  = c("Multiple", unique(data$supplier)),
+      selected = "Multiple",
+      multiple = FALSE,
+      options = pickerOptions(
+        liveSearch = TRUE, 
+        size = 5
+      )
+    ),
+    ## Pick Featured Product or Not 
+    pickerInput(
+      label   = "Featured",
+      inputId = "ts_overview_pick_product_featured_ws_price",
+      choices = c("Multiple", "Featured", "Not Featured"),
+      selected = "Multiple",
+      multiple = FALSE,
+      options = pickerOptions(
+        liveSearch = TRUE, 
+        size = 5
+      )   
+    )
   )
 }
 #### Function Overview Page for Table plot ####
