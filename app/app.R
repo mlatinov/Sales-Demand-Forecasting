@@ -4,6 +4,7 @@ library(shiny)
 library(bslib)
 library(shinyWidgets)
 
+data <- readRDS("app_data/data.rds")$train_set
 
 ## User Interface ================================================================================
 ui <- page_sidebar(
@@ -42,14 +43,20 @@ ui <- page_sidebar(
         fillable   = FALSE,
         gap        = "14px",
 
-        # Time series plot (One product Weekly Sales)
+        # Time series plot (Weekly Sales)
         product_weekly_sales_ui(output_id = "ts_overview_product_weekly_sales"),
 
         ## Time Series Plot (Weekly Price)
         product_weekly_price_ui(output_id = "ts_overview_product_weekly_price"),
         
         ## Controller for Weekly Sales, Weekly Price Plots and Tables
-        product_overview_page_controller_ui(output_id = "ts_overview_pick_product_ws_price")
+        product_overview_page_controller_ui(
+          data,
+          product_pick_output_id  = "ts_overview_pick_product_ws_price",
+          category_pick_output_id = "ts_overview_pick_product_category_ws_price",
+          supplier_pick_output_id = "ts_overview_pick_product_supplier_ws_price",
+          featured_pick_output_id = "ts_overview_pick_product_featured_ws_price"
+        )
       ),
 
       ### Second Layout Columns Overview Page 
@@ -171,8 +178,19 @@ ui <- page_sidebar(
 server <- function(input, output, session){
   ## Switch pages in the sidebar
   switch_sidebar_pages(input)
+
+  ## Overview Page -------------------------------------------------------------------------------
+
+  ## # Time series plot (Weekly Sales)
+  output$ts_overview_product_weekly_sales <- plotly::renderPlotly(
+    plot_time_series_weekly_sales(
+      data           = data,
+      product_input  = input$ts_overview_pick_product_ws_price,
+      category_input = input$ts_overview_pick_product_category_ws_price,
+      supplier_input = input$ts_overview_pick_product_supplier_ws_price,
+      featured_input = input$ts_overview_pick_product_featured_ws_price
+    )
+  )
 }
-
-
 
 shinyApp(ui, server)
