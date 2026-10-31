@@ -22,23 +22,24 @@ sidebar_nav <- function(id, pages) {
 }
 
 #### Overview Page ========================================================================================
+
 #### Function Overview Page Container for Product Weekly sales ####
 product_weekly_sales_ui <- function(
-  header = "Product Weekly Sales", 
+  header = "Products Sales", 
   height = 600,
   output_id = "ts_overview_product_weekly_sales"
 ){
   # Time series plot (One product Weekly Sales)
   card(
-    card_header("Product Weekly Sales"),
+    card_header("Products Sales"),
     full_screen = TRUE,
     height      = 600,
-    plotly::plotlyOutput(outputId = "ts_overview_product_weekly_sales")  
+    plotly::plotlyOutput(outputId = output_id, height = "100%")  
   )
 }
 #### Function Overview Page Container for Product Weekly Price
 product_weekly_price_ui <- function(
-  header = "Product Weekly Price", 
+  header = "Products Price", 
   height = 600, 
   output_id = "ts_overview_product_weekly_price"
 ){
@@ -47,26 +48,39 @@ product_weekly_price_ui <- function(
     card_header(header),
     full_screen = TRUE,
     height      = height,
-    plotOutput(outputId = output_id)  
+    plotly::plotlyOutput(outputId = output_id, height = "100%")  
   )
 }
 #### Functions Overview Page for Controller ####
 product_overview_page_controller_ui <- function(
   data,
-  product_pick_output_id  = "ts_overview_pick_product_ws_price",
-  category_pick_output_id = "ts_overview_pick_product_category_ws_price",
-  supplier_pick_output_id = "ts_overview_pick_product_supplier_ws_price",
-  featured_pick_output_id = "ts_overview_pick_product_featured_ws_price"
+  product_pick_input_id  = "ts_overview_pick_product_ws_price",
+  category_pick_input_id = "ts_overview_pick_product_category_ws_price",
+  supplier_pick_input_id = "ts_overview_pick_product_supplier_ws_price",
+  featured_pick_input_id = "ts_overview_pick_product_featured_ws_price",
+  time_granularity_pick_input_id = "ts_overview_pick_time_granularity"
 ){
   card(
-    card_header("Look up Product"),
+    card_header("Filter Products"),
     height = 600,
+    
+    ## Pick The Time Granularity
+    pickerInput(
+      label   = "Time", 
+      inputId = time_granularity_pick_input_id, 
+      choices  = c("Weekly" = "weekly", "Monthly" = "monthly", "Quarterly" = "quarterly"),
+      selected = c("Weekly" = "weekly"), 
+      multiple = FALSE,
+      options  = pickerOptions(
+        size = 5
+      )  
+    ),
     ## Pick A Specific Product or Products to look up 
     pickerInput(
-      inputId  = product_pick_output_id,
+      inputId  = product_pick_input_id,
       label    = "Product",
-      choices  = c("Multiple", 1:length(unique(data$product))),
-      selected = "Multiple",
+      choices  = c(1:length(unique(data$product))),
+      selected = "1", 
       multiple = TRUE,
       options  =  pickerOptions(
         liveSearch = TRUE,
@@ -76,10 +90,9 @@ product_overview_page_controller_ui <- function(
     ## Pick a Category of Products
     pickerInput(
       label   = "Category", 
-      inputId = "ts_overview_pick_product_category_ws_price",
-      choices = c("Multiple", unique(data$category)),
-      selected = "Multiple",
-      multiple = FALSE,
+      inputId = category_pick_input_id,
+      choices = c(unique(data$category)),
+      multiple = TRUE,
       options  = pickerOptions(
         liveSearch = TRUE, 
         size = 5
@@ -88,10 +101,9 @@ product_overview_page_controller_ui <- function(
     ## Pick Supplier  
     pickerInput(
       label    = "Supplier",
-      inputId  = "ts_overview_pick_product_supplier_ws_price",
-      choices  = c("Multiple", unique(data$supplier)),
-      selected = "Multiple",
-      multiple = FALSE,
+      inputId  = supplier_pick_input_id,
+      choices  = c(unique(data$supplier)),
+      multiple = TRUE,
       options = pickerOptions(
         liveSearch = TRUE, 
         size = 5
@@ -100,10 +112,9 @@ product_overview_page_controller_ui <- function(
     ## Pick Featured Product or Not 
     pickerInput(
       label   = "Featured",
-      inputId = "ts_overview_pick_product_featured_ws_price",
-      choices = c("Multiple", "Featured", "Not Featured"),
-      selected = "Multiple",
-      multiple = FALSE,
+      inputId = featured_pick_input_id,
+      choices = c("Featured" = "1", "Not Featured" = "0"),
+      multiple = TRUE,
       options = pickerOptions(
         liveSearch = TRUE, 
         size = 5
@@ -122,7 +133,7 @@ table_overview_page_ui <- function(
     card_header(header),
     full_screen = TRUE,
     height      = height,
-    tableOutput(outputId = output_id)
+    DT::DTOutput(outputId = output_id)
   )
 }
 
@@ -132,10 +143,10 @@ between_product_comparison_bar_chart_ui <- function(
 ){
   ## Between Product Comparison Bar Chart
   card(
-    card_header("Between Product Weekly Sales"),
+    card_header("Compare Products Sales"),
     full_screen = TRUE,
     height      = 600,
-    plotOutput(outputId = between_product_comparison_output_id)
+    plotOutput(outputId = between_product_comparison_output_id, height = "100%")
   )
 }
 

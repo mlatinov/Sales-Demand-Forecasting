@@ -4,10 +4,12 @@ process_retail_modeling <- function(data, forecast_window_weeks = 4){
   data_clean <- data %>%
     # Rename covariates 
     rename(
-      product = sku,
+      weekly   = week,
+      product  = sku,
       supplier = vendor,
       category = functionality,
-      featured = feat_main_page
+      featured = feat_main_page,
+      weekly_price = price
     ) %>%
     mutate(
       # Remove 0.number.name pattern to name of the category 
@@ -17,10 +19,10 @@ process_retail_modeling <- function(data, forecast_window_weeks = 4){
       # Recover Nas colors of the product by the product number
       color = case_when(product == 42 ~ "black", product == 9 ~ "black", product == 44 ~ "black", product == 43 ~ "gold", .default = color),
       # Lag 2 Price 
-      lag2_price = lag(price, 2) 
+      lag2_price = lag(weekly_price, 2) 
     ) %>%
     # Transform into Time Series 
-    tsibble::as_tsibble(index = week, key = c(product, supplier, category))
+    tsibble::as_tsibble(index = weekly, key = c(product, supplier, category))
   
   # Split the data into Training and Testing with forecast window of ig 4 weeks
   data_split <- data_clean %>%
