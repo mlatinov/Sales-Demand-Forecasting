@@ -10,11 +10,11 @@ data <- readRDS("app_data/data.rds")$train_set
 ui <- page_sidebar(
   # Global Variables Title and Theme
   title   = "Forecast Future Sales",
-  theme   = bslib::bs_theme(
-    bootswatch = "minty",
-    base_font = font_google("Inter")
+  theme = bs_theme(
+    preset    = "zephyr",
+    primary   = "#0F766E",                 # dark teal
+    base_font = font_google("Source Sans 3")
   ),
-
   # Side Bar Navigation 
   sidebar = sidebar(
     title = "Explore",
@@ -52,10 +52,11 @@ ui <- page_sidebar(
         ## Controller for Weekly Sales, Weekly Price Plots and Tables
         product_overview_page_controller_ui(
           data,
-          product_pick_output_id  = "ts_overview_pick_product_ws_price",
-          category_pick_output_id = "ts_overview_pick_product_category_ws_price",
-          supplier_pick_output_id = "ts_overview_pick_product_supplier_ws_price",
-          featured_pick_output_id = "ts_overview_pick_product_featured_ws_price"
+          product_pick_input_id  = "ts_overview_pick_product_ws_price",
+          category_pick_input_id = "ts_overview_pick_product_category_ws_price",
+          supplier_pick_input_id = "ts_overview_pick_product_supplier_ws_price",
+          featured_pick_input_id = "ts_overview_pick_product_featured_ws_price",
+          time_granularity_pick_input_id = "ts_overview_pick_time_granularity"
         )
       ),
 
@@ -176,21 +177,35 @@ ui <- page_sidebar(
 
 ## Server ========================================================================================
 server <- function(input, output, session){
+  ## Thematic for non interactive plots 
+  thematic::thematic_shiny()
+
   ## Switch pages in the sidebar
   switch_sidebar_pages(input)
 
   ## Overview Page -------------------------------------------------------------------------------
 
-  ## # Time series plot (Weekly Sales)
-  output$ts_overview_product_weekly_sales <- plotly::renderPlotly(
-    plot_time_series_weekly_sales(
-      data           = data,
+  ## Time series plot (Sales)
+  render_overview_plot_sales_price(input = input, output = output, data = data, var = "sales", output_id = "ts_overview_product_weekly_sales" )
+
+  ## Time series plot (Price)
+  render_overview_plot_sales_price(input = input, output = output, data = data, var = "price", output_id = "ts_overview_product_weekly_price")
+
+  ## Time Series Table Overview
+  render_overview_table(input = input, output = output, output_id = "overview_table_plot")
+
+  ## Last Time Period Comparison Sales Comparison Bar-Chart
+  output$between_product_comparison_output_id <- renderPlot({
+    plot_products_comparison_bar_chart(
+      data = data,
       product_input  = input$ts_overview_pick_product_ws_price,
       category_input = input$ts_overview_pick_product_category_ws_price,
       supplier_input = input$ts_overview_pick_product_supplier_ws_price,
-      featured_input = input$ts_overview_pick_product_featured_ws_price
+      featured_input = input$ts_overview_pick_product_supplier_ws_price,
+      time_input     = input$ts_overview_pick_time_granularity,
+      var = "sales"
     )
-  )
+  })
 }
 
 shinyApp(ui, server)
