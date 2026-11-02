@@ -26,4 +26,9 @@ list(
     command = export_object(x = retail_clean_split, out_file = "app/app_data/data.rds"),
     format = "file"  
   )
+  ## Fit M01 Initial Model 
+  #tar_target(
+    #name = M01_model,
+    #command = fit_mo1(retail_clean_split)
+  #)
 )

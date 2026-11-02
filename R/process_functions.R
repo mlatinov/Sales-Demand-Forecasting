@@ -1,3 +1,10 @@
+#### Function to get BF days ####
+black_friday <- function(years) {
+  nov1 <- as.Date(paste0(years, "-11-01"))
+  wd   <- as.POSIXlt(nov1)$wday                 
+  thanksgiving <- nov1 + (4 - wd) %% 7 + 21    
+  thanksgiving + 1
+}
 
 #### Function to Clean and process the Data for Modeling ####
 process_retail_modeling <- function(data, forecast_window_weeks = 4){
@@ -18,8 +25,8 @@ process_retail_modeling <- function(data, forecast_window_weeks = 4){
       featured = ifelse(featured == TRUE, 1, 0),
       # Recover Nas colors of the product by the product number
       color = case_when(product == 42 ~ "black", product == 9 ~ "black", product == 44 ~ "black", product == 43 ~ "gold", .default = color),
-      # Lag 2 Price 
-      lag2_price = lag(weekly_price, 2) 
+      # BF day Indicator 
+      BF = as.integer(weekly %in% tsibble::yearweek(black_friday(2016:2018))) 
     ) %>%
     # Transform into Time Series 
     tsibble::as_tsibble(index = weekly, key = c(product, supplier, category))
