@@ -468,6 +468,26 @@ vector lts__damped_local_linear_trend_forecast_rng(real mu_last, real delta_last
 }
 
 // lts v0.2.0 (pub) -- lts/lts.laplacelib:457
+//@laplace
+//@brief Slope path of the non-centred Damped Local Linear Trend. Call with the same delta1, sigma_delta, zeta_delta and rho as lts::damped_local_linear_trend.
+//@param real delta1 Initial slope
+//@param real sigma_delta Slope innovation scale
+//@param vector zeta_delta Standard normal slope innovations, length T-1
+//@param real rho Slope damping
+//@example vector[T] delta = lts::damped_local_linear_trend_slope(delta1, sigma_delta, zeta_delta, rho);
+//@math \delta_t = \rho\,\delta_{t-1} + \sigma_\delta\,\zeta^{\delta}_t. The level uses delta[1:(T-1)]; delta[T] only matters for the forecast, so pass delta[T] as delta_last to lts::damped_local_linear_trend_forecast_rng.
+//@return vector[T] delta, with T = num_elements(zeta_delta) + 1
+vector lts__damped_local_linear_trend_slope(real delta1, real sigma_delta, vector zeta_delta, real rho){
+    int T = num_elements(zeta_delta) + 1;
+    vector[T] delta;
+    delta[1] = delta1;
+    for(t in 2:T){
+        delta[t] = rho * delta[t - 1] + sigma_delta * zeta_delta[t - 1];
+    }
+    return delta;
+}
+
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:476
 // Stochastic seasonal ===========================================================================================================
 //@laplace
 //@brief Stochastic seasonal
@@ -492,7 +512,7 @@ vector lts__stochastic_seasonal(vector s_init, vector zs, real sigma_s){
     return seas;
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:480
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:499
 //@laplace
 //@brief Stochastic seasonal state density. CENTRED alternative to lts::stochastic_seasonal. Prefer lts::stochastic_seasonal (non-centred) by default: with weakly informed scales this form has a funnel and may fail to converge (low E-BFMI, R-hat above 1.01) even without many divergences. Use it only when the data pin the state down tightly, and never together with lts::stochastic_seasonal.
 //@param vector seas The seasonal path, declared as a parameter, length T
@@ -511,7 +531,7 @@ real lts__stochastic_seasonal_state_lpdf(vector seas, int S, real sigma_s){
     return normal_lpdf(seas[S:T] | mu_s, sigma_s);
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:497
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:516
 //@laplace
 //@brief Stochastic seasonal Random Number Generator
 //@param vector s_init Initial seasonal effects, length S-1
@@ -533,7 +553,7 @@ vector lts__stochastic_seasonal_rng(vector s_init, real sigma_s, int T){
     return seas;
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:519
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:538
 //@laplace
 //@brief Continue a fitted stochastic seasonal H steps beyond the end of the path
 //@param vector seas_last The final S-1 fitted seasonal effects, oldest to newest
@@ -553,7 +573,7 @@ vector lts__stochastic_seasonal_forecast_rng(vector seas_last, real sigma_s, int
     return full[(Sm1 + 1):(Sm1 + H)];
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:539
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:558
 // Trigonometric seasonal ========================================================================================================
 // Helper Trig preparation
 //@laplace
@@ -573,7 +593,7 @@ array[] vector lts__trigonometric_prep(real period, int K){
     return cos_sin;
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:560
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:579
 //@laplace
 //@brief Trigonometric seasonal
 //@param vector g1 Initial harmonic states, length K
@@ -608,7 +628,7 @@ vector lts__trigonometric_seasonal(vector g1, vector g1_star, matrix z_g, matrix
     return seas;
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:592
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:611
 //@laplace
 //@brief Trigonometric seasonal state density. CENTRED alternative to lts::trigonometric_seasonal. Prefer lts::trigonometric_seasonal (non-centred) by default: with weakly informed scales this form has a funnel and may fail to converge (low E-BFMI, R-hat above 1.01) even without many divergences. Use it only when the data pin the state down tightly, and never together with lts::trigonometric_seasonal.
 //@param matrix g The harmonic paths, declared as a parameter, T rows by K columns
@@ -630,7 +650,7 @@ real lts__trigonometric_seasonal_state_lpdf(matrix g, matrix g_star, real sigma_
     return lp;
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:614
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:633
 //@laplace
 //@brief Trigonometric seasonal Random Number Generator
 //@param vector g1 Initial harmonic states, length K
@@ -661,7 +681,7 @@ vector lts__trigonometric_seasonal_rng(vector g1, vector g1_star, real sigma_gam
     return seas;
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:643
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:662
 //@laplace
 //@brief Continue a fitted trigonometric seasonal H steps beyond the end of the path
 //@param vector g_last The final harmonic states, length K
@@ -691,7 +711,7 @@ vector lts__trigonometric_seasonal_forecast_rng(vector g_last, vector g_star_las
     return seas_f;
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:673
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:692
 // Stochastic volatility =========================================================================================================
 //@laplace
 //@brief Stochastic volatility
@@ -716,7 +736,7 @@ vector lts__stochastic_volatility(real mu_h, real sigma_h, real rho, vector z){
     return h;
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:696
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:715
 //@laplace
 //@brief Stochastic volatility state density. CENTRED alternative to lts::stochastic_volatility. Prefer lts::stochastic_volatility (non-centred) by default: with weakly informed scales this form has a funnel and may fail to converge (low E-BFMI, R-hat above 1.01) even without many divergences. Use it only when the data pin the state down tightly, and never together with lts::stochastic_volatility.
 //@param vector h The log-variance path, declared as a parameter
@@ -732,7 +752,7 @@ real lts__stochastic_volatility_state_lpdf(vector h, real mu_h, real sigma_h, re
          + normal_lpdf(h[2:T]  | mu_h + rho * (h[1:(T - 1)] - mu_h), sigma_h);
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:710
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:729
 //@laplace
 //@brief Stochastic volatility observation density
 //@param vector y_obs Observations
@@ -745,7 +765,7 @@ real lts__stochastic_volatility_lpdf(vector y_obs, vector h, vector mu){
     return normal_lpdf(y_obs | mu, exp(h / 2));
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:722
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:741
 //@laplace
 //@brief Stochastic volatility Random Number Generator
 //@param real mu_h Mean log variance
@@ -766,7 +786,7 @@ vector lts__stochastic_volatility_rng(real mu_h, real sigma_h, real rho, int T){
     return h;
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:744
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:763
 //@laplace
 //@brief Continue a fitted volatility path H steps beyond the end of the series
 //@param real h_last The final fitted log variance, h[T]
@@ -788,7 +808,7 @@ vector lts__stochastic_volatility_forecast_rng(real h_last, real mu_h, real sigm
     return h_f;
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:764
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:783
 // Latent-Gaussian counts ========================================================================================================
 //@laplace
 //@brief Latent-Gaussian counts. A zero-mean AR(1) latent effect for count data — often better behaved than an observation-driven count autoregression.
@@ -812,7 +832,7 @@ vector lts__latent_gaussian_counts(real rho, real sigma_u, vector z){
     return u;
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:786
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:805
 //@laplace
 //@brief Latent-Gaussian counts state density. CENTRED alternative to lts::latent_gaussian_counts. Prefer lts::latent_gaussian_counts (non-centred) by default: with weakly informed scales this form has a funnel and may fail to converge (low E-BFMI, R-hat above 1.01) even without many divergences. Use it only when the data pin the state down tightly, and never together with lts::latent_gaussian_counts.
 //@param vector u The latent path, declared as a parameter
@@ -827,7 +847,7 @@ real lts__latent_gaussian_counts_state_lpdf(vector u, real rho, real sigma_u){
          + normal_lpdf(u[2:T] | rho * u[1:(T - 1)], sigma_u);
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:799
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:818
 //@laplace
 //@brief Latent-Gaussian counts Random Number Generator
 //@param real rho Persistence
@@ -848,7 +868,7 @@ vector lts__latent_gaussian_counts_rng(real rho, real sigma_u, int T){
     return u;
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:820
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:839
 //@laplace
 //@brief Continue a fitted latent path H steps beyond the end of the series
 //@param real u_last The final fitted latent value, u[T]
@@ -868,7 +888,7 @@ vector lts__latent_gaussian_counts_forecast_rng(real u_last, real rho, real sigm
     return u_f;
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:840
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:859
 //@laplace
 //@brief Latent-Gaussian counts Log Pointwise Mass Function
 //@param array[] int y Observed counts
@@ -883,7 +903,7 @@ real lts__latent_gaussian_counts_lpmf(array[] int y, vector u, matrix X, vector 
     return poisson_log_lpmf(y | log_lambda);
 }
 
-// lts v0.2.0 (pub) -- lts/lts.laplacelib:852
+// lts v0.2.0 (pub) -- lts/lts.laplacelib:871
 //@laplace
 //@brief Latent-Gaussian counts Log Pointwise Mass Function
 //@param array[] int y Observed counts

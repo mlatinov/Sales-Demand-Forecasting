@@ -63,3 +63,8 @@ exploratory_model <- function(one, df = 5) {
 
   one %>% mutate(res  = residuals(fit, type = "pearson"),disp = summary(fit)$dispersion)
 }
+
+
+
+
+

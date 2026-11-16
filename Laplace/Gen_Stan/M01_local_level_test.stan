@@ -102,9 +102,7 @@ transformed parameters{
     real b1 = 0.05 * s1;
 
     // Argument order: (delta1, mu1, sigma_delta, sigma_mu, zeta_delta, zeta_mu) -> slope first
-    vector[N] Ld = lts__damped_local_linear_trend(1, L1, sigma_b, sigma_L, zeta_b, zeta_L, rho);
     vector[N] Lo = lts__local_level(L1, zeta_L, sigma_L);
-    vector[N] L  = lts__local_linear_trend(b1, L1, sigma_b, sigma_L, zeta_b, zeta_L);
 
     // Feature adstock
     vector[N] a;
@@ -114,7 +112,7 @@ transformed parameters{
     }
 
     // Linear predictor 
-    vector[N] eta = Ld 
+    vector[N] eta = Lo 
                     + gamma_F  * a 
                     + beta_p   * p 
                     + delta_d  * d 
@@ -148,8 +146,29 @@ model{
     // Calendar Effects Priors 
     kappa_BF ~ normal(0.5, 0.75);
     nu_CH    ~ normal(0.5, 1);
-    rho_YN   ~ normal(-1, 0.5); 
 
     // Likelihood
     y ~ neg_binomial_2_log(eta, phi);
+}
+
+generated quantities{
+    vector[H] L_f = lts__local_level_forecast_rng(Lo[N], sigma_L, H);
+    array[H] int y_f;
+    vector[H] eta_f; 
+
+    {
+        real a_cur = a[N];
+        for(h in 1:H){
+            a_cur    = F_new[h] + lambda * a_cur;
+            eta_f[h] = L_f[h] + gamma_F  * a_cur
+                              + beta_p   * p_new[h]
+                              + delta_d  * d_new[h]
+                              + kappa_BF * BF_new[h]
+                              + nu_CH    * CH_new[h]
+                              + rho_YN   * YN_new[h];
+            y_f[h] = neg_binomial_2_log_rng(eta_f[h], phi);
+        }
+    }
+    vector[N] log_lik;
+    for(n in 1:N) log_lik[n] = neg_binomial_2_log_lpmf(y[n] | eta[n], phi);
 }
